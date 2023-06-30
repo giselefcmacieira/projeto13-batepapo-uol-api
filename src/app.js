@@ -80,7 +80,7 @@ app.post('/messages', async (req, res) => {
     const messageSchema = Joi.object({
         to: Joi.string().required(),
         text: Joi.string().required(),
-        type: Joi.any().valid('message', 'private_message')
+        type: Joi.any().valid('message', 'private_message').required()
     });
     const fromSchema = Joi.object({
         user: Joi.required()
@@ -109,6 +109,8 @@ app.post('/messages', async (req, res) => {
     }catch (err){
         return res.status(500).send(err.message);
     }
-})
+});
+
+
 
 app.listen(5000, () => console.log("Servidor rodando na porta 5000"));
