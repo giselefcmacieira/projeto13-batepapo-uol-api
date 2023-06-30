@@ -14,10 +14,19 @@ dotenv.config();
 const mongoClient = new MongoClient(process.env.DATABASE_URL);
 let db;
 
+function acertaHora (h){
+    const hd = h.toString().length;
+    if(hd === 1){
+        console.log('0'+h.toString());
+        return '0'+h.toString();
+    }
+    return h.toString()
+}
+
 const data = Date.now();
-const hora = dayjs(data).hour();
-const minutos = dayjs(data).minute();
-const segundos = dayjs(data).second();
+const hora = acertaHora(dayjs(data).hour());
+const minutos = acertaHora(dayjs(data).minute());
+const segundos = acertaHora(dayjs(data).second());
 const horario = `${hora}:${minutos}:${segundos}`;
 
 mongoClient.connect()
