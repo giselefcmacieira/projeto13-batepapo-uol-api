@@ -76,22 +76,39 @@ app.post('/messages', async (req, res) => {
     //Body: { to: "Maria", text: "oi sumida rs", type: "private_message" }
     const {to, text, type} = req.body;
     const User = req.headers.user;
-     const messageSchema = Joi.object({
+    const from = {user: User}
+    const messageSchema = Joi.object({
         to: Joi.string().required(),
         text: Joi.string().required(),
         type: Joi.any().valid('message', 'private_message')
     });
+    const fromSchema = Joi.object({
+        user: Joi.required()
+    })
     const validation = messageSchema.validate(req.body, {abortEarly: false});
     if(validation.error){
         //const errors = validation.error.details.map(detail => detail.message);
-        return res.status(422).send('Erro na validação do body');
+        return res.sendStatus(422);
     }
-    if(!User){
+    const fromValidation = fromSchema.validate(from, {abortEarly: false});
+    if(fromValidation.error){
         return res.sendStatus(422);
     }
     const participant = await db.collection("participants").findOne({name: User});
-    if(!participant) return res.status(422).send('Participante não encontrado!!');
-    return res.send(`Tudo certo! user: ${User}, to: ${to}, text: ${text}, type: ${type}, participant: ${participant.name}`)
+    if(!participant) return res.sendStatus(422);
+    // {from: 'João', to: 'Todos', text: 'oi galera', type: 'message', time: '20:04:37'}
+    try{
+        await db.collection("messages").insertOne({
+            from: User,
+            to: to,
+            text: text,
+            type: type,
+            time: horario
+        })
+        return res.sendStatus(201)
+    }catch (err){
+        return res.status(500).send(err.message);
+    }
 })
 
 app.listen(5000, () => console.log("Servidor rodando na porta 5000"));
