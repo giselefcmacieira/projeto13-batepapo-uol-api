@@ -147,4 +147,26 @@ app.get('/messages', async (req,res) => {
     }
     
 });
+
+app.post('/status', async (req, res) => {
+    const User = req.headers.user;
+    if(!User){
+        return res.sendStatus(404);
+    }
+    try{
+        const participant = await db.collection('participants').findOne({name: User});
+        if(!participant){
+            return res.sendStatus(404);
+        }
+        const userUpdated = {
+            name: User,
+            lastStatus: Date.now()
+        }
+        await db.collection('participants').updateOne({name: User}, {$set: userUpdated});
+        return res.sendStatus(200);
+    }catch{
+        return res.status(500).send(err.message);
+    }
+})
+
 app.listen(5000, () => console.log("Servidor rodando na porta 5000"));
