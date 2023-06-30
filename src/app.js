@@ -17,7 +17,6 @@ let db;
 function acertaHora (h){
     const hd = h.toString().length;
     if(hd === 1){
-        console.log('0'+h.toString());
         return '0'+h.toString();
     }
     return h.toString()
@@ -120,6 +119,32 @@ app.post('/messages', async (req, res) => {
     }
 });
 
-
-
+app.get('/messages', async (req,res) => {
+    const limit = parseInt(req.query.limit);
+    const limitobj = {limit: limit};
+    const User = req.headers.user;
+    if(req.query.limit){
+        if(isNaN(limit) || limit <= 0){
+            return res.sendStatus(422)
+        }
+    }
+    //Formato da mensagem no db {from: 'João', to: 'Todos', text: 'oi galera', type: 'message', time: '20:04:37'}
+    //Deve buscar todas as mensagens que tem type:'message', from: User, to: User e to: 'Todos'
+    try{
+        const userMessages = await db.collection('messages').find({ 
+            $or: [ 
+                { $and: [{ to: User}, {type: 'private_message'}] }, 
+                { to: 'Todos' },
+                { from: User }
+            ] 
+        }).toArray();
+        if(!req.query.limit){
+            return res.send(userMessages);
+        }
+        return res.send(userMessages.slice(-limit));
+    }catch (err){
+        return res.status(500).send(err.message);
+    }
+    
+});
 app.listen(5000, () => console.log("Servidor rodando na porta 5000"));
