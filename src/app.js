@@ -22,13 +22,6 @@ function acertaHora (h){
     return h.toString()
 }
 
-const data = Date.now();
-const remocao = data - 10000;
-const hora = acertaHora(dayjs(data).hour());
-const minutos = acertaHora(dayjs(data).minute());
-const segundos = acertaHora(dayjs(data).second());
-const horario = `${hora}:${minutos}:${segundos}`;
-
 mongoClient.connect()
     .then(() => {
         db = mongoClient.db();
@@ -38,6 +31,12 @@ mongoClient.connect()
 
 app.post('/participants', async (req, res) => {
     // Body: { name: "João" }
+    const data = Date.now();
+    const hora = acertaHora(dayjs(data).hour());
+    const minutos = acertaHora(dayjs(data).minute());
+    const segundos = acertaHora(dayjs(data).second());
+    const horario = `${hora}:${minutos}:${segundos}`;
+
     const {name} = req.body;
     const participantSchema = Joi.object({
         name: Joi.string().required()
@@ -82,6 +81,12 @@ app.get('/participants', async (req, res) => {
 });
 
 app.post('/messages', async (req, res) => {
+    const data = Date.now();
+    const hora = acertaHora(dayjs(data).hour());
+    const minutos = acertaHora(dayjs(data).minute());
+    const segundos = acertaHora(dayjs(data).second());
+    const horario = `${hora}:${minutos}:${segundos}`;
+
     //Body: { to: "Maria", text: "oi sumida rs", type: "private_message" }
     const {to, text, type} = req.body;
     const User = req.headers.user;
@@ -122,7 +127,6 @@ app.post('/messages', async (req, res) => {
 
 app.get('/messages', async (req,res) => {
     const limit = parseInt(req.query.limit);
-    const limitobj = {limit: limit};
     const User = req.headers.user;
     if(req.query.limit){
         if(isNaN(limit) || limit <= 0){
@@ -171,8 +175,12 @@ app.post('/status', async (req, res) => {
 })
 
 async function remocaoDeUsuariosInativos(){
-    //db.inventory.find( { quantity: { $lt: 20 } } )
-    //const a = await db.collection('participants').findOne({name: 'Gisele'});
+    const data = Date.now();
+    const hora = acertaHora(dayjs(data).hour());
+    const minutos = acertaHora(dayjs(data).minute());
+    const segundos = acertaHora(dayjs(data).second());
+    const horario = `${hora}:${minutos}:${segundos}`;
+    const remocao = data - 10000;
     try{
         const usuariosInativos = await db.collection('participants').find({lastStatus: {$lt: remocao}}).toArray();
         console.log(usuariosInativos);
