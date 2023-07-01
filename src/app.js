@@ -23,6 +23,7 @@ function acertaHora (h){
 }
 
 const data = Date.now();
+const remocao = data - 10000;
 const hora = acertaHora(dayjs(data).hour());
 const minutos = acertaHora(dayjs(data).minute());
 const segundos = acertaHora(dayjs(data).second());
@@ -168,5 +169,36 @@ app.post('/status', async (req, res) => {
         return res.status(500).send(err.message);
     }
 })
+
+async function remocaoDeUsuariosInativos(){
+    //db.inventory.find( { quantity: { $lt: 20 } } )
+    //const a = await db.collection('participants').findOne({name: 'Gisele'});
+    try{
+        const usuariosInativos = await db.collection('participants').find({lastStatus: {$lt: remocao}}).toArray();
+        console.log(usuariosInativos);
+        if(usuariosInativos.length === 0){
+            return console.log('Não tem usuarios inativos');
+        }
+        usuariosInativos.forEach(async usuario => {
+            try{
+                await db.collection('participants').deleteOne({name: usuario.name});
+                await db.collection('messages').insertOne({
+                    from: usuario.name,
+                    to: 'Todos',
+                    text: 'sai da sala...',
+                    type: 'status',
+                    time: horario
+                })
+                return console.log('Usuários inativos removidos com sucesso');
+            }catch (err){
+                return console.log(err.message);
+            } 
+        })
+    }catch (err){
+        return console.log(err.message);
+    }
+    
+}
+setInterval(remocaoDeUsuariosInativos, 15000);
 
 app.listen(5000, () => console.log("Servidor rodando na porta 5000"));
