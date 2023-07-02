@@ -92,12 +92,7 @@ app.post('/messages', async (req, res) => {
     const horario = `${hora}:${minutos}:${segundos}`;
 
     //Body: { to: "Maria", text: "oi sumida rs", type: "private_message" }
-    if(typeof(req.body.to) !== 'string' || typeof(req.body.text) !== 'string' || typeof(req.body.type) !== 'string'){
-        return res.sendStatus(422);
-    }
-    const to = stripHtml(req.body.to).result.trim();
-    const text = stripHtml(req.body.text).result.trim();
-    const type = stripHtml(req.body.text).result.trim();
+    const {to, text, type} = req.body
     const User = req.headers.user;
     const from = {user: User}
     const messageSchema = Joi.object({
