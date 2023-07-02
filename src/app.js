@@ -236,4 +236,41 @@ app.delete('/messages/:id', async (req, res) => {
     }
 })
 
+app.put('/messages/:id', async (req,res) => {
+    const {to, text, type} = req.body;
+    const User = req.headers.user;
+    const {id} = req.params;
+    const messageSchema = Joi.object({
+        to: Joi.string().required(),
+        text: Joi.string().required(),
+        type: Joi.valid('message', 'private_message').required()
+    })
+    const validation = messageSchema.validate(req.body, {abortEarly: false});
+    if(validation.error){
+        return res.sendStatus(422);
+    }
+    try{
+        const usuario = await db.collection('participants').findOne({name: User});
+        if(!usuario){
+            return res.sendStatus(422);
+        }
+        const message = await db.collection('messages').findOne({_id: new ObjectId(id)});
+        if(!message){
+            return res.sendStatus(404);
+        }
+        if(message.from !== User){
+            return res.sendStatus(401);
+        }
+        const messageEditada = {
+            to: to,
+            text: text,
+            type: type
+        }
+        await db.collection('messages').updateOne({_id: new ObjectId(id)}, {$set: messageEditada});
+        return res.send('Mensagem editada com sucesso!')
+    }catch (err){
+        return res.status(500).send(err.message);
+    }
+})
+
 app.listen(5000, () => console.log("Servidor rodando na porta 5000"));
