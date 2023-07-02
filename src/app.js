@@ -4,6 +4,7 @@ import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv';
 import Joi from 'joi';
 import dayjs from 'dayjs';
+import { stripHtml } from 'string-strip-html';
 
 const app = express();
 
@@ -31,13 +32,16 @@ mongoClient.connect()
 
 app.post('/participants', async (req, res) => {
     // Body: { name: "João" }
+
     const data = Date.now();
     const hora = acertaHora(dayjs(data).hour());
     const minutos = acertaHora(dayjs(data).minute());
     const segundos = acertaHora(dayjs(data).second());
     const horario = `${hora}:${minutos}:${segundos}`;
-
-    const {name} = req.body;
+    if(typeof(req.body.name) !== 'string'){
+        return res.sendStatus(422);
+    }
+    const name = stripHtml(req.body.name).result.trim();
     const participantSchema = Joi.object({
         name: Joi.string().required()
     });
@@ -88,7 +92,12 @@ app.post('/messages', async (req, res) => {
     const horario = `${hora}:${minutos}:${segundos}`;
 
     //Body: { to: "Maria", text: "oi sumida rs", type: "private_message" }
-    const {to, text, type} = req.body;
+    if(typeof(req.body.to) !== 'string' || typeof(req.body.text) !== 'string' || typeof(req.body.type) !== 'string'){
+        return res.sendStatus(422);
+    }
+    const to = stripHtml(req.body.to).result.trim();
+    const text = stripHtml(req.body.text).result.trim();
+    const type = stripHtml(req.body.text).result.trim();
     const User = req.headers.user;
     const from = {user: User}
     const messageSchema = Joi.object({
@@ -207,6 +216,6 @@ async function remocaoDeUsuariosInativos(){
     }
     
 }
-setInterval(remocaoDeUsuariosInativos, 15000);
+//setInterval(remocaoDeUsuariosInativos, 15000);
 
 app.listen(5000, () => console.log("Servidor rodando na porta 5000"));
